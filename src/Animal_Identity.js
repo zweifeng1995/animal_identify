@@ -35,7 +35,7 @@ export default class Animal_Identity extends Component {
                 length++;
             return length;
         }
-        //到服务器中取出事实知识
+        // 到服务器中取出事实知识
         axios.get("http://localhost:8888/api/v1/getKnowledge").then((response) =>{
             let result = "";
             let TextToValue = {
@@ -68,12 +68,12 @@ export default class Animal_Identity extends Component {
                 "banma": "斑马",
                 "length": 27
             };
-            //1.初始化综合数据库，即把欲解决问题的已知事实送入综合数据库中。
+            // 1.初始化综合数据库，即把欲解决问题的已知事实送入综合数据库中。
             let  facts = response.data;
             facts.jsonlength = getJsonLength(facts[0]);
-            //事实集
-            //console.log(facts);
-            let temp = [];//用于标记规则是否被使用
+            // 事实集
+            // console.log(facts);
+            let temp = []; // 用于标记规则是否被使用
             for(let i = 0; i < facts.length; i++)
                 temp[i] = 0;//初始化标记
             let question = {
@@ -98,16 +98,16 @@ export default class Animal_Identity extends Component {
                 "heisehebaise": 0,
                 "youshui": 0,
                 "length": 20
-            };//初始化question
-            for(let i in this.state.value){//根据输入给question赋值
-                let result = this.state.value[i];// result = "毛发"
+            }; // 初始化question
+            for(let i in this.state.value){ // 根据输入给question赋值
+                let result = this.state.value[i]; // result = "毛发"
                 for(let key in TextToValue) {
                     if(TextToValue[key] === result)
                         question[key] = 1;
                 }
             }
-            //欲解决的问题集
-            //console.log(question);//{"maofa": 1, "chanru": 0, ...}
+            // 欲解决的问题集
+            // console.log(question);//{"maofa": 1, "chanru": 0, ...}
             let answer = {
                 "laohu": 1,
                 "liebao": 1,
@@ -117,17 +117,17 @@ export default class Animal_Identity extends Component {
                 "haiyan": 1,
                 "banma": 1,
                 "length": 7
-            };//最终答案集
-            let end = false;//结束标记
+            }; // 最终答案集
+            let end = false; // 结束标记
 
-            //2.检查规则库中是否有未使用过的规则，若无转7
+            // 2.检查规则库中是否有未使用过的规则，若无转7
             for(let i = 0; i < facts.length; i++){
                 if(!end){
                     if(temp[i] === 0){ //规则未使用
                         let m = 0;
                         for(let j in facts[i]){//遍历当前事实的每一项，j = key
-                        //3.检查规则库的未使用规则中是否有其前提可与综合数据库中的已知事实相匹配的规则
-                        //若有，形成当前可用规则集，否则转6
+                        // 3.检查规则库的未使用规则中是否有其前提可与综合数据库中的已知事实相匹配的规则
+                        // 若有，形成当前可用规则集，否则转6
                             if(!end){
                                 m++;
                                 if(facts[i][j] === 1 && question[j] !== 1){
@@ -135,18 +135,18 @@ export default class Animal_Identity extends Component {
                                     break;
                                 }else if(m === facts.jsonlength){
                                     for(let k in facts[i])//facts[i]，k = key
-                                        //4.按照冲突消解策略，从当前可用规则集中选择一个规则执行，并对该规则作上标记。
-                                        //把执行该规则后所得到的结论作为新的事实放入综合数据库；
-                                        //如果该规则的结论是一些操作，则执行这些操作
+                                        // 4.按照冲突消解策略，从当前可用规则集中选择一个规则执行，并对该规则作上标记。
+                                        // 把执行该规则后所得到的结论作为新的事实放入综合数据库；
+                                        // 如果该规则的结论是一些操作，则执行这些操作
                                         if(facts[i][k] === 2){
-                                            //形成规则集
-                                            //console.log(k);
+                                            // 形成规则集
+                                            // console.log(k);
                                             question[k] = 1;
                                             question.length++;
                                         }
                                     temp[i] = 1;//规则使用过
                                     let n = 0;
-                                    //5.检查综合数据库中是否包含了该问题的解，若已包含，说明解已求出，问题求解过程结束，否则转2
+                                    // 5.检查综合数据库中是否包含了该问题的解，若已包含，说明解已求出，问题求解过程结束，否则转2
                                     for(let i in answer){
                                         n++;
                                         if(question[i] === 1){
@@ -154,8 +154,8 @@ export default class Animal_Identity extends Component {
                                             end = true;
                                             break;
                                         }else if(n === answer.length && i === facts.length - 1){
-                                            //6.当规则库中还有未使用的规则，但均不能与综合数据库中的已有事实相匹配时
-                                            //要求用户进一步提供关于该问题的已知事实，若能提供，则转2，否则执行下一步
+                                            // 6.当规则库中还有未使用的规则，但均不能与综合数据库中的已有事实相匹配时
+                                            // 要求用户进一步提供关于该问题的已知事实，若能提供，则转2，否则执行下一步
                                             result = "无法识别，请继续提供条件。";
                                         }
                                     }
@@ -165,9 +165,9 @@ export default class Animal_Identity extends Component {
                     }
                 }
             }
-            //7.若知识库中不再有未使用规则，也说明该问题无解，终止问题求解过程
-            //从3-5的循环过程实际上就是一个搜索过程
-            //console.log(question);
+            // 7.若知识库中不再有未使用规则，也说明该问题无解，终止问题求解过程
+            // 从3-5的循环过程实际上就是一个搜索过程
+            // console.log(question);
             if(end === false)
                 result = "无解!";
             alert(result);
